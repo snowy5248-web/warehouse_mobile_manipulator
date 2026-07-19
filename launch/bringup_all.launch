@@ -1,0 +1,48 @@
+<launch>
+  <!-- Các tham số mặc định cho Gazebo -->
+  <arg name="paused" default="false"/>
+  <arg name="use_sim_time" default="true"/>
+  <arg name="gui" default="true"/>
+  <arg name="headless" default="false"/>
+  <arg name="debug" default="false"/>
+  <arg name="use_rviz" default="true"/>
+  <arg name="use_joint_gui" default="true"/>
+
+  <!-- 1. Mở Gazebo Classic và nạp file thế giới tự động tìm vị trí -->
+  <include file="$(find gazebo_ros)/launch/empty_world.launch">
+    <arg name="world_name" value="$(find warehouse_mobile_manipulator)/worlds/warehouse.world"/>
+    <arg name="paused" value="$(arg paused)"/>
+    <arg name="use_sim_time" value="$(arg use_sim_time)"/>
+    <arg name="gui" value="$(arg gui)"/>
+    <arg name="headless" value="$(arg headless)"/>
+    <arg name="debug" value="$(arg debug)"/>
+  </include>
+
+  <!-- 2. Nạp file URDF tự động tìm vị trí -->
+  <param name="robot_description" textfile="$(find warehouse_mobile_manipulator)/urdf/robot.urdf" />
+
+  <!-- 3. Gọi node spawn_model để đưa robot vào không gian Gazebo -->
+  <node name="spawn_urdf" pkg="gazebo_ros" type="spawn_model"
+        args="-param robot_description -urdf -model my_robot -x 0 -y 0 -z 0.1"
+        output="screen" />
+
+  <!-- 4. Node xuất trạng thái các khớp (tính TF cho joint1, joint2 dựa trên /joint_states) -->
+  <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher" />
+
+  <!-- 4b. GUI điều khiển khớp tay máy (joint1, joint2) - publish /joint_states -->
+  <node if="$(arg use_joint_gui)" name="joint_state_publisher_gui"
+        pkg="joint_state_publisher_gui" type="joint_state_publisher_gui" />
+
+  <!-- 5. Node phát tọa độ tĩnh base_link -> laser_frame (C++) -->
+  <node name="static_broadcaster" pkg="warehouse_mobile_manipulator" type="static_broadcaster" output="screen" />
+
+  <!-- 6. Node lắng nghe tọa độ động odom -> gripper_touchpoint (Python) -->
+  <node name="tf_listener" pkg="warehouse_mobile_manipulator" type="tf_listener.py" output="screen" />
+
+  <!-- 7. Node giám sát an toàn khoảng cách (lắng nghe /scan) -->
+  <node name="safety_monitor" pkg="warehouse_mobile_manipulator" type="safety_monitor.py" output="screen" />
+
+  <!-- 8. RViz để trực quan hóa robot, TF và tia laser -->
+  <node if="$(arg use_rviz)" name="rviz" pkg="rviz" type="rviz" />
+</launch>
+
