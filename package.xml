@@ -70,7 +70,8 @@
   <exec_depend>std_msgs</exec_depend>
   <exec_depend>tf2_ros</exec_depend>
   <exec_depend>urdf</exec_depend>
-
+  <build_depend>roscpp</build_depend>
+  <exec_depend>roscpp</exec_depend>
 
   <!-- The export tag contains other, unspecified, tags -->
   <export>
