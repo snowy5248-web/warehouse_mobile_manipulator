@@ -1,19 +1,19 @@
 <?xml version="1.0"?>
 <robot name="warehouse_mobile_manipulator">
 
-  <!-- ================= Khâu gốc ảo sát mặt đất ================= -->
+  <!-- ================= Virtual Root Link Ground-Level ================= -->
   <link name="base_footprint"/>
 
   <joint name="base_footprint_joint" type="fixed">
     <parent link="base_footprint"/>
     <child link="base_link"/>
-    <!-- Nâng thân xe lên 0.2m (thay vì 0.1m) để đáy thân cao hơn tâm trục bánh xe,
-         tránh thân xe "lún" vào bánh xe như trước -->
+    <!-- Raise the robot body to 0.2m (instead of 0.1m) so the bottom of the body 
+         is higher than the wheel axle center, preventing the body from sinking into the wheels -->
     <origin xyz="0 0 0.2" rpy="0 0 0"/>
   </joint>
 
-  <!-- ================= 1. ĐẾ DI ĐỘNG (MOBILE BASE) ================= -->
-  <!-- Thân xe: Màu Xanh Dương -->
+  <!-- ================= 1. MOBILE BASE ================= -->
+  <!-- Robot Body: Blue -->
   <link name="base_link">
     <visual>
       <geometry><box size="0.5 0.3 0.2"/></geometry>
@@ -31,7 +31,7 @@
     <material>Gazebo/Blue</material>
   </gazebo>
 
-  <!-- Bánh xe Trái: Màu Đen -->
+  <!-- Left Wheel: Black -->
   <link name="left_wheel">
     <visual>
       <geometry><cylinder radius="0.1" length="0.05"/></geometry>
@@ -51,18 +51,18 @@
     <mu2>1.0</mu2>
   </gazebo>
 
-  <!-- KHỚP NỐI BÁNH XE TRÁI (bị thiếu ở bản gốc) -->
+  <!-- LEFT WHEEL JOINT -->
   <joint name="left_wheel_joint" type="continuous">
     <parent link="base_link"/>
     <child link="left_wheel"/>
-    <!-- y = +0.175 (nửa bề rộng thân 0.15 + nửa bề dày bánh 0.025) -->
-    <!-- z = -0.1: base_link giờ cao 0.2m so với đất, tâm bánh (bán kính 0.1) phải ở độ cao
-         0.1m so với đất -> lệch xuống 0.1m so với gốc base_link -->
+    <!-- y = +0.175 (half of base width 0.15 + half of wheel width 0.025) -->
+    <!-- z = -0.1: base_link is now 0.2m above the ground, wheel center (radius 0.1) 
+         must be at 0.1m height -> shifted down by 0.1m relative to base_link origin -->
     <origin xyz="0 0.175 -0.1" rpy="-1.5708 0 0"/>
     <axis xyz="0 0 1"/>
   </joint>
 
-  <!-- Bánh xe Phải: Màu Đen -->
+  <!-- Right Wheel: Black -->
   <link name="right_wheel">
     <visual>
       <geometry><cylinder radius="0.1" length="0.05"/></geometry>
@@ -82,7 +82,7 @@
     <mu2>1.0</mu2>
   </gazebo>
 
-  <!-- KHỚP NỐI BÁNH XE PHẢI (bị thiếu ở bản gốc) -->
+  <!-- RIGHT WHEEL JOINT -->
   <joint name="right_wheel_joint" type="continuous">
     <parent link="base_link"/>
     <child link="right_wheel"/>
@@ -90,7 +90,7 @@
     <axis xyz="0 0 1"/>
   </joint>
 
-  <!-- Bánh xe Caster: Màu Xám -->
+  <!-- Caster Wheel: Grey -->
   <link name="caster_wheel">
     <visual>
       <geometry><sphere radius="0.05"/></geometry>
@@ -106,20 +106,21 @@
   </link>
   <gazebo reference="caster_wheel">
     <material>Gazebo/Grey</material>
-    <!-- Ma sát thấp để bánh caster trượt tự do, không cản trở di chuyển vi sai -->
+    <!-- Low friction for caster to slide freely, not hindering differential drive movement -->
     <mu1>0.0</mu1>
     <mu2>0.0</mu2>
   </gazebo>
 
-  <!-- KHỚP NỐI BÁNH CASTER (bị thiếu ở bản gốc) -->
+  <!-- REAR CASTER JOINT -->
   <joint name="caster_wheel_joint" type="fixed">
     <parent link="base_link"/>
-    <!-- Đặt phía sau thân xe, x âm; tâm quả cầu (bán kính 0.05) phải cao 0.05m so với đất
-         -> lệch xuống 0.15m so với gốc base_link (đang cao 0.2m so với đất) -->
+    <!-- Positioned at the rear of the body, negative x; sphere center (radius 0.05) 
+         must be 0.05m above ground -> offset down by 0.15m from base_link origin (which is 0.2m high) -->
     <origin xyz="-0.2 0 -0.15" rpy="0 0 0"/>
     <child link="caster_wheel"/>
   </joint>
-  <!-- Bánh xe Caster PHÍA TRƯỚC (thêm để chống chúi mũi xuống đất) -->
+
+  <!-- FRONT Caster Wheel (Added to prevent tilting forward) -->
   <link name="caster_wheel_front">
     <visual>
       <geometry><sphere radius="0.05"/></geometry>
@@ -141,13 +142,13 @@
 
   <joint name="caster_wheel_front_joint" type="fixed">
     <parent link="base_link"/>
-    <!-- Đối xứng với caster sau: x dương (phía trước), cùng độ cao -0.15 -->
+    <!-- Symmetrical to rear caster: positive x (front), same -0.15 height offset -->
     <origin xyz="0.2 0 -0.15" rpy="0 0 0"/>
     <child link="caster_wheel_front"/>
   </joint>
 	
-  <!-- ================= CẢM BIẾN LIDAR ================= -->
-  <!-- LiDAR: Màu Cam -->
+  <!-- ================= LIDAR SENSOR ================= -->
+  <!-- LiDAR: Orange -->
   <link name="laser_frame">
     <visual>
       <geometry><cylinder radius="0.05" length="0.05"/></geometry>
@@ -171,8 +172,8 @@
     <origin xyz="0.15 0 0.15" rpy="0 0 0"/>
   </joint>
 
-  <!-- ================= 2. TAY MÁY GẮP HÀNG (MANIPULATOR RR) ================= -->
-  <!-- Đế tay máy: Màu Xám -->
+  <!-- ================= 2. MANIPULATOR RR ARM ================= -->
+  <!-- Arm Base: Grey -->
   <link name="arm_base_link">
     <visual>
       <geometry><cylinder radius="0.04" length="0.02"/></geometry>
@@ -196,7 +197,7 @@
     <origin xyz="0 0 0.1" rpy="0 0 0"/>
   </joint>
 
-  <!-- Khâu xoay 1: Màu Đỏ -->
+  <!-- Revolute Link 1: Red -->
   <link name="arm_link1">
     <visual>
       <origin xyz="0 0 0.15" rpy="0 0 0"/>
@@ -222,13 +223,12 @@
     <origin xyz="0 0 0.01" rpy="0 0 0"/>
     <axis xyz="0 1 0"/>
     <limit lower="-1.57" upper="1.57" effort="10" velocity="1.0"/>
-    <!-- Thêm damping/friction: không có bộ điều khiển (controller) nào giữ khớp này
-         trong Gazebo, nếu không có dynamics, khớp sẽ rơi tự do dưới trọng lực và
-         dao động lên xuống như con lắc, không bao giờ dừng -->
+    <!-- Added damping/friction: without a controller keeping this joint stable in Gazebo,
+         the joint would free-fall under gravity and oscillate like a pendulum indefinitely without dynamics -->
     <dynamics damping="5.0" friction="1.0"/>
   </joint>
 
-  <!-- Khâu xoay 2: Màu Xanh Lá -->
+  <!-- Revolute Link 2: Green -->
   <link name="arm_link2">
     <visual>
       <origin xyz="0 0 0.15" rpy="0 0 0"/>
@@ -257,7 +257,7 @@
     <dynamics damping="5.0" friction="1.0"/>
   </joint>
 
-  <!-- Hệ tọa độ ảo đầu gắp -->
+  <!-- Virtual End-Effector Link Frame -->
   <link name="gripper_touchpoint"/>
   <joint name="gripper_touchpoint_joint" type="fixed">
     <parent link="arm_link2"/>
@@ -265,7 +265,7 @@
     <origin xyz="0 0 0.3" rpy="0 0 0"/>
   </joint>
 
-  <!-- Plugins Truyền động & Cảm biến -->
+  <!-- Actuation & Sensor Plugins -->
   <gazebo>
     <plugin name="differential_drive_controller" filename="libgazebo_ros_diff_drive.so">
       <leftJoint>left_wheel_joint</leftJoint>
@@ -297,6 +297,7 @@
             <max_angle>3.14159</max_angle>
           </horizontal>
         </scan>
+        <ray>
         <range>
           <min>0.1</min>
           <max>10.0</max>

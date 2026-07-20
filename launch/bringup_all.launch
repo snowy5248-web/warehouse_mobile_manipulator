@@ -1,5 +1,5 @@
 <launch>
-  <!-- Các tham số mặc định cho Gazebo -->
+  <!-- Default parameters for Gazebo -->
   <arg name="paused" default="false"/>
   <arg name="use_sim_time" default="true"/>
   <arg name="gui" default="true"/>
@@ -8,7 +8,7 @@
   <arg name="use_rviz" default="true"/>
   <arg name="use_joint_gui" default="true"/>
 
-  <!-- 1. Mở Gazebo Classic và nạp file thế giới tự động tìm vị trí -->
+  <!-- 1. Launch Gazebo Classic and load the world file automatically -->
   <include file="$(find gazebo_ros)/launch/empty_world.launch">
     <arg name="world_name" value="$(find warehouse_mobile_manipulator)/worlds/warehouse.world"/>
     <arg name="paused" value="$(arg paused)"/>
@@ -18,31 +18,30 @@
     <arg name="debug" value="$(arg debug)"/>
   </include>
 
-  <!-- 2. Nạp file URDF tự động tìm vị trí -->
+  <!-- 2. Load the URDF file automatically -->
   <param name="robot_description" textfile="$(find warehouse_mobile_manipulator)/urdf/robot.urdf" />
 
-  <!-- 3. Gọi node spawn_model để đưa robot vào không gian Gazebo -->
+  <!-- 3. Call the spawn_model node to spawn the robot into Gazebo -->
   <node name="spawn_urdf" pkg="gazebo_ros" type="spawn_model"
         args="-param robot_description -urdf -model my_robot -x 0 -y 0 -z 0.1"
         output="screen" />
 
-  <!-- 4. Node xuất trạng thái các khớp (tính TF cho joint1, joint2 dựa trên /joint_states) -->
+  <!-- 4. Robot state publisher node (computes TFs for joint1 and joint2 based on /joint_states) -->
   <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher" />
 
-  <!-- 4b. GUI điều khiển khớp tay máy (joint1, joint2) - publish /joint_states -->
+  <!-- 4b. GUI interface to control arm joints (joint1, joint2) - publishes to /joint_states -->
   <node if="$(arg use_joint_gui)" name="joint_state_publisher_gui"
         pkg="joint_state_publisher_gui" type="joint_state_publisher_gui" />
 
-  <!-- 5. Node phát tọa độ tĩnh base_link -> laser_frame (C++) -->
+  <!-- 5. Static TF broadcaster node: base_link -> laser_frame (C++) -->
   <node name="static_broadcaster" pkg="warehouse_mobile_manipulator" type="static_broadcaster" output="screen" />
 
-  <!-- 6. Node lắng nghe tọa độ động odom -> gripper_touchpoint (Python) -->
+  <!-- 6. Dynamic TF listener node: odom -> gripper_touchpoint (Python) -->
   <node name="tf_listener" pkg="warehouse_mobile_manipulator" type="tf_listener.py" output="screen" />
 
-  <!-- 7. Node giám sát an toàn khoảng cách (lắng nghe /scan) -->
+  <!-- 7. Safety monitor node (subscribes to /scan to monitor obstacle distance) -->
   <node name="safety_monitor" pkg="warehouse_mobile_manipulator" type="safety_monitor.py" output="screen" />
 
-  <!-- 8. RViz để trực quan hóa robot, TF và tia laser -->
+  <!-- 8. RViz for robot, TF, and laser scan visualization -->
   <node if="$(arg use_rviz)" name="rviz" pkg="rviz" type="rviz" />
 </launch>
-
