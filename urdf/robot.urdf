@@ -1,19 +1,19 @@
 <?xml version="1.0"?>
 <robot name="warehouse_mobile_manipulator">
 
-  <!-- ================= Virtual Root Link Ground-Level ================= -->
+  <!-- ================= Virtual root link at ground level ================= -->
   <link name="base_footprint"/>
 
   <joint name="base_footprint_joint" type="fixed">
     <parent link="base_footprint"/>
     <child link="base_link"/>
-    <!-- Raise the robot body to 0.2m (instead of 0.1m) so the bottom of the body 
-         is higher than the wheel axle center, preventing the body from sinking into the wheels -->
+    <!-- Chassis raised 0.2m so its bottom sits above the wheel axle,
+         preventing the chassis from visually clipping into the wheels -->
     <origin xyz="0 0 0.2" rpy="0 0 0"/>
   </joint>
 
   <!-- ================= 1. MOBILE BASE ================= -->
-  <!-- Robot Body: Blue -->
+  <!-- Chassis: Blue -->
   <link name="base_link">
     <visual>
       <geometry><box size="0.5 0.3 0.2"/></geometry>
@@ -31,7 +31,7 @@
     <material>Gazebo/Blue</material>
   </gazebo>
 
-  <!-- Left Wheel: Black -->
+  <!-- Left wheel: Black -->
   <link name="left_wheel">
     <visual>
       <geometry><cylinder radius="0.1" length="0.05"/></geometry>
@@ -55,14 +55,14 @@
   <joint name="left_wheel_joint" type="continuous">
     <parent link="base_link"/>
     <child link="left_wheel"/>
-    <!-- y = +0.175 (half of base width 0.15 + half of wheel width 0.025) -->
-    <!-- z = -0.1: base_link is now 0.2m above the ground, wheel center (radius 0.1) 
-         must be at 0.1m height -> shifted down by 0.1m relative to base_link origin -->
+    <!-- y = +0.175 (half chassis width 0.15 + half wheel thickness 0.025) -->
+    <!-- z = -0.1: base_link is now 0.2m above ground, wheel center (radius 0.1)
+         must be 0.1m above ground -> offset -0.1 relative to base_link origin -->
     <origin xyz="0 0.175 -0.1" rpy="-1.5708 0 0"/>
     <axis xyz="0 0 1"/>
   </joint>
 
-  <!-- Right Wheel: Black -->
+  <!-- Right wheel: Black -->
   <link name="right_wheel">
     <visual>
       <geometry><cylinder radius="0.1" length="0.05"/></geometry>
@@ -90,7 +90,7 @@
     <axis xyz="0 0 1"/>
   </joint>
 
-  <!-- Caster Wheel: Grey -->
+  <!-- Rear caster wheel: Grey -->
   <link name="caster_wheel">
     <visual>
       <geometry><sphere radius="0.05"/></geometry>
@@ -106,21 +106,22 @@
   </link>
   <gazebo reference="caster_wheel">
     <material>Gazebo/Grey</material>
-    <!-- Low friction for caster to slide freely, not hindering differential drive movement -->
+    <!-- Low friction so the caster slides freely and doesn't resist differential drive -->
     <mu1>0.0</mu1>
     <mu2>0.0</mu2>
   </gazebo>
 
-  <!-- REAR CASTER JOINT -->
+  <!-- REAR CASTER WHEEL JOINT -->
   <joint name="caster_wheel_joint" type="fixed">
     <parent link="base_link"/>
-    <!-- Positioned at the rear of the body, negative x; sphere center (radius 0.05) 
-         must be 0.05m above ground -> offset down by 0.15m from base_link origin (which is 0.2m high) -->
+    <!-- Rear of chassis, negative x; sphere center (radius 0.05) must be
+         0.05m above ground -> offset -0.15 relative to base_link (now 0.2m above ground) -->
     <origin xyz="-0.2 0 -0.15" rpy="0 0 0"/>
     <child link="caster_wheel"/>
   </joint>
 
-  <!-- FRONT Caster Wheel (Added to prevent tilting forward) -->
+  <!-- Front caster wheel: added to prevent the chassis from tipping forward
+       (with only a rear caster, the front half of the chassis had no support point) -->
   <link name="caster_wheel_front">
     <visual>
       <geometry><sphere radius="0.05"/></geometry>
@@ -140,13 +141,14 @@
     <mu2>0.0</mu2>
   </gazebo>
 
+  <!-- FRONT CASTER WHEEL JOINT -->
   <joint name="caster_wheel_front_joint" type="fixed">
     <parent link="base_link"/>
-    <!-- Symmetrical to rear caster: positive x (front), same -0.15 height offset -->
+    <!-- Symmetric to rear caster: positive x (front), same height -0.15 -->
     <origin xyz="0.2 0 -0.15" rpy="0 0 0"/>
     <child link="caster_wheel_front"/>
   </joint>
-	
+
   <!-- ================= LIDAR SENSOR ================= -->
   <!-- LiDAR: Orange -->
   <link name="laser_frame">
@@ -172,8 +174,8 @@
     <origin xyz="0.15 0 0.15" rpy="0 0 0"/>
   </joint>
 
-  <!-- ================= 2. MANIPULATOR RR ARM ================= -->
-  <!-- Arm Base: Grey -->
+  <!-- ================= 2. MANIPULATOR ARM (RR CONFIGURATION) ================= -->
+  <!-- Arm base: Grey -->
   <link name="arm_base_link">
     <visual>
       <geometry><cylinder radius="0.04" length="0.02"/></geometry>
@@ -197,7 +199,7 @@
     <origin xyz="0 0 0.1" rpy="0 0 0"/>
   </joint>
 
-  <!-- Revolute Link 1: Red -->
+  <!-- Revolute link 1: Red -->
   <link name="arm_link1">
     <visual>
       <origin xyz="0 0 0.15" rpy="0 0 0"/>
@@ -223,12 +225,13 @@
     <origin xyz="0 0 0.01" rpy="0 0 0"/>
     <axis xyz="0 1 0"/>
     <limit lower="-1.57" upper="1.57" effort="10" velocity="1.0"/>
-    <!-- Added damping/friction: without a controller keeping this joint stable in Gazebo,
-         the joint would free-fall under gravity and oscillate like a pendulum indefinitely without dynamics -->
+    <!-- Damping/friction added: no controller holds this joint in Gazebo.
+         Without dynamics, the joint would free-fall under gravity and
+         oscillate like a pendulum and never settle -->
     <dynamics damping="5.0" friction="1.0"/>
   </joint>
 
-  <!-- Revolute Link 2: Green -->
+  <!-- Revolute link 2: Green -->
   <link name="arm_link2">
     <visual>
       <origin xyz="0 0 0.15" rpy="0 0 0"/>
@@ -257,7 +260,7 @@
     <dynamics damping="5.0" friction="1.0"/>
   </joint>
 
-  <!-- Virtual End-Effector Link Frame -->
+  <!-- Virtual end-effector frame -->
   <link name="gripper_touchpoint"/>
   <joint name="gripper_touchpoint_joint" type="fixed">
     <parent link="arm_link2"/>
@@ -265,7 +268,7 @@
     <origin xyz="0 0 0.3" rpy="0 0 0"/>
   </joint>
 
-  <!-- Actuation & Sensor Plugins -->
+  <!-- Drive and sensor plugins -->
   <gazebo>
     <plugin name="differential_drive_controller" filename="libgazebo_ros_diff_drive.so">
       <leftJoint>left_wheel_joint</leftJoint>
@@ -279,6 +282,9 @@
       <updateRate>30</updateRate>
       <publishOdomTF>true</publishOdomTF>
       <publishWheelTF>false</publishWheelTF>
+      <!-- Disabled: prevents Gazebo from also publishing /joint_states for the
+           wheel joints, which would conflict with joint_state_publisher_gui
+           publishing arm joint states on the same topic -->
       <publishWheelJointState>false</publishWheelJointState>
     </plugin>
   </gazebo>
@@ -287,7 +293,7 @@
     <sensor type="ray" name="laser">
       <pose>0 0 0 0 0 0</pose>
       <visualize>true</visualize>
-      <updateRate>10</updateRate>
+      <update_rate>10</update_rate>
       <ray>
         <scan>
           <horizontal>
@@ -297,7 +303,6 @@
             <max_angle>3.14159</max_angle>
           </horizontal>
         </scan>
-        <ray>
         <range>
           <min>0.1</min>
           <max>10.0</max>
