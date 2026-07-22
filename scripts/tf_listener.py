@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # scripts/tf_listener.py
 #
 # Dynamic TF listener: at 10 Hz, looks up the pose of gripper_touchpoint

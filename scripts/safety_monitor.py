@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # scripts/safety_monitor.py
 #
 # Safety monitor node: listens to /scan (sensor_msgs/LaserScan),
